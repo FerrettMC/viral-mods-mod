@@ -6,9 +6,15 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundSetSubtitleTextPacket;
 import net.minecraft.network.protocol.game.ClientboundSetTitleTextPacket;
 import net.minecraft.network.protocol.game.ClientboundSetTitlesAnimationPacket;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.TickTask;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -16,6 +22,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.ButtonBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.AttachFace;
+import net.minecraft.world.phys.AABB;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.eventbus.api.listener.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -110,6 +117,8 @@ public class ColorGuessingGame {
         BlockPos endFloor = new BlockPos(player.getBlockX() - 1 + blocks + 1, player.getBlockY(), player.getBlockZ() + 10);
         BlockPos middle = new BlockPos(player.getBlockX() - 2 + Math.round((float) (blocks + 2) / 2), player.getBlockY() + 1, player.getBlockZ() + 2);
         player.teleportTo(middle.getX(), middle.getY(), middle.getZ());
+        clearArea(level, startFloor, endFloor, 15);
+
         for (int x = startFloor.getX(); x <= endFloor.getX(); x++) {
             for (int z = startFloor.getZ(); z <= endFloor.getZ(); z++) {
                 if (z == startFloor.getZ() + 4) {
@@ -234,17 +243,22 @@ public class ColorGuessingGame {
                 player.connection.send(new ClientboundSetTitleTextPacket(Component.literal("Congrats! You got it in " + guesses + " guesses.")));
                 player.connection.send(new ClientboundSetTitlesAnimationPacket(10, 70, 20));
                 // Delay the cleanup by 1 tick so the button press finishes first
-                level.getServer().execute(() -> {
+                runDelayed(level, () -> {
                     for (BlockPos blockPos : blocksToSetToAirOnWin) {
                         level.setBlock(blockPos, Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL_IMMEDIATE);
                     }
-                    // Force remove button specifically
+
                     if (buttonPos != null) {
                         level.removeBlock(buttonPos, false);
                         buttonPos = null;
                     }
+
                     GameListener.isGameStarted = false;
-                });
+                    removeNearbyStoneButtons(level, player, 10); // 10-block radius
+
+
+                }, 10);
+
 
             } else {
                 player.connection.send(new ClientboundSetTitleTextPacket(Component.literal("You have " + correct + " correct out of " + amountOfBlocks)));
@@ -253,6 +267,52 @@ public class ColorGuessingGame {
 
         }
     }
+    public static void runDelayed(Level level, Runnable task, int ticks) {
+        MinecraftServer server = level.getServer();
+        int targetTick = server.getTickCount() + ticks;
+
+        server.execute(() -> {
+            server.execute(() -> {
+                if (server.getTickCount() >= targetTick) {
+                    task.run();
+                } else {
+                    runDelayed(level, task, ticks - 1);
+                }
+            });
+        });
+    }
+
+    public static void removeNearbyStoneButtons(Level level, Player player, double radius) {
+        AABB box = new AABB(
+                player.getX() - radius, player.getY() - radius, player.getZ() - radius,
+                player.getX() + radius, player.getY() + radius, player.getZ() + radius
+        );
+
+        level.getEntitiesOfClass(ItemEntity.class, box, item ->
+                item.getItem().is(Items.STONE_BUTTON)
+        ).forEach(Entity::discard);
+    }
+
+    public static void clearArea(ServerLevel level, BlockPos start, BlockPos end, int height) {
+        int minX = Math.min(start.getX(), end.getX());
+        int maxX = Math.max(start.getX(), end.getX());
+        int minY = start.getY();
+        int maxY = start.getY() + height;
+        int minZ = Math.min(start.getZ(), end.getZ());
+        int maxZ = Math.max(start.getZ(), end.getZ());
+
+        for (int x = minX; x <= maxX; x++) {
+            for (int y = minY; y <= maxY; y++) {
+                for (int z = minZ; z <= maxZ; z++) {
+                    level.setBlock(new BlockPos(x, y, z), Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL_IMMEDIATE);
+                }
+            }
+        }
+    }
+
+
+
+
 }
 
 
