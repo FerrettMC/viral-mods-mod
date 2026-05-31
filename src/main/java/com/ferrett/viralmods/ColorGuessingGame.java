@@ -101,6 +101,7 @@ public class ColorGuessingGame {
         amountOfBlocks = blocks;
 
         GameListener.isGameStarted = true;
+        GameListener.game = "block_guessing";
 
         for (int i = 0; i < blocks; i++) {
             Block randomBlock = usableBlocks[new Random().nextInt(usableBlocks.length)];

@@ -1,6 +1,8 @@
 package com.ferrett.viralmods;
 
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.context.CommandContext;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.EntityArgument;
@@ -13,11 +15,14 @@ import net.minecraftforge.eventbus.api.listener.SubscribeEvent;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import net.minecraftforge.fml.common.Mod;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 @Mod.EventBusSubscriber
 public class GameListener {
     public static Boolean isGameStarted = false;
+    public static String game = "";
 
     @SubscribeEvent
     public static void onRegisterCommands(RegisterCommandsEvent event) {
@@ -49,39 +54,116 @@ public class GameListener {
 
         dispatcher.register(
                 Commands.literal("pillars_of_fortune")
-                        .executes(context -> {
-                            // No argument — just show usage message
-                            ServerPlayer player = context.getSource().getPlayerOrException();
-                            player.displayClientMessage(Component.literal("Usage: /pillars_of_fortune <player> (for each player)"), false);
-                            return 1;
-                        })
-                        .then(Commands.argument("players", EntityArgument.players())
+                        .then(Commands.argument("player1", EntityArgument.player())
                                 .executes(context -> {
-                                    Collection<ServerPlayer> players =
-                                            EntityArgument.getPlayers(context, "players");
-
-                                    ServerPlayer executor = context.getSource().getPlayerOrException();
-                                    ServerLevel level = context.getSource().getLevel();
-
-                                    // Start your game logic here
-                                    // PillarsOfFortune.startGame(players, executor, level);
-
-                                    executor.displayClientMessage(
-                                            Component.literal("Pillars of Fortune started for " + players.size() + " players."),
-                                            false
-                                    );
-
-                                    return players.size();
+                                    List<ServerPlayer> players = new ArrayList<>();
+                                    players.add(EntityArgument.getPlayer(context, "player1"));
+                                    return startPillars(context, players);
                                 })
+                                .then(Commands.argument("player2", EntityArgument.player())
+                                        .executes(context -> {
+                                            List<ServerPlayer> players = new ArrayList<>();
+                                            players.add(EntityArgument.getPlayer(context, "player1"));
+                                            players.add(EntityArgument.getPlayer(context, "player2"));
+                                            return startPillars(context, players);
+                                        })
+                                        .then(Commands.argument("player3", EntityArgument.player())
+                                                .executes(context -> {
+                                                    List<ServerPlayer> players = new ArrayList<>();
+                                                    players.add(EntityArgument.getPlayer(context, "player1"));
+                                                    players.add(EntityArgument.getPlayer(context, "player2"));
+                                                    players.add(EntityArgument.getPlayer(context, "player3"));
+                                                    return startPillars(context, players);
+                                                })
+                                                .then(Commands.argument("player4", EntityArgument.player())
+                                                        .executes(context -> {
+                                                            List<ServerPlayer> players = new ArrayList<>();
+                                                            players.add(EntityArgument.getPlayer(context, "player1"));
+                                                            players.add(EntityArgument.getPlayer(context, "player2"));
+                                                            players.add(EntityArgument.getPlayer(context, "player3"));
+                                                            players.add(EntityArgument.getPlayer(context, "player4"));
+                                                            return startPillars(context, players);
+                                                        })
+                                                        .then(Commands.argument("player5", EntityArgument.player())
+                                                                .executes(context -> {
+                                                                    List<ServerPlayer> players = new ArrayList<>();
+                                                                    players.add(EntityArgument.getPlayer(context, "player1"));
+                                                                    players.add(EntityArgument.getPlayer(context, "player2"));
+                                                                    players.add(EntityArgument.getPlayer(context, "player3"));
+                                                                    players.add(EntityArgument.getPlayer(context, "player4"));
+                                                                    players.add(EntityArgument.getPlayer(context, "player5"));
+                                                                    return startPillars(context, players);
+                                                                })
+                                                                .then(Commands.argument("player6", EntityArgument.player())
+                                                                        .executes(context -> {
+                                                                            List<ServerPlayer> players = new ArrayList<>();
+                                                                            players.add(EntityArgument.getPlayer(context, "player1"));
+                                                                            players.add(EntityArgument.getPlayer(context, "player2"));
+                                                                            players.add(EntityArgument.getPlayer(context, "player3"));
+                                                                            players.add(EntityArgument.getPlayer(context, "player4"));
+                                                                            players.add(EntityArgument.getPlayer(context, "player5"));
+                                                                            players.add(EntityArgument.getPlayer(context, "player6"));
+                                                                            return startPillars(context, players);
+                                                                        })
+                                                                        .then(Commands.argument("player7", EntityArgument.player())
+                                                                                .executes(context -> {
+                                                                                    List<ServerPlayer> players = new ArrayList<>();
+                                                                                    players.add(EntityArgument.getPlayer(context, "player1"));
+                                                                                    players.add(EntityArgument.getPlayer(context, "player2"));
+                                                                                    players.add(EntityArgument.getPlayer(context, "player3"));
+                                                                                    players.add(EntityArgument.getPlayer(context, "player4"));
+                                                                                    players.add(EntityArgument.getPlayer(context, "player5"));
+                                                                                    players.add(EntityArgument.getPlayer(context, "player6"));
+                                                                                    players.add(EntityArgument.getPlayer(context, "player7"));
+                                                                                    return startPillars(context, players);
+                                                                                })
+                                                                                .then(Commands.argument("player8", EntityArgument.player())
+                                                                                        .executes(context -> {
+                                                                                            List<ServerPlayer> players = new ArrayList<>();
+                                                                                            players.add(EntityArgument.getPlayer(context, "player1"));
+                                                                                            players.add(EntityArgument.getPlayer(context, "player2"));
+                                                                                            players.add(EntityArgument.getPlayer(context, "player3"));
+                                                                                            players.add(EntityArgument.getPlayer(context, "player4"));
+                                                                                            players.add(EntityArgument.getPlayer(context, "player5"));
+                                                                                            players.add(EntityArgument.getPlayer(context, "player6"));
+                                                                                            players.add(EntityArgument.getPlayer(context, "player7"));
+                                                                                            players.add(EntityArgument.getPlayer(context, "player8"));
+                                                                                            return startPillars(context, players);
+                                                                                        })
+                                                                                )
+                                                                        )
+                                                                )
+                                                        )
+                                                )
+                                        )
+                                )
                         )
         );
 
+    }
+
+    private static int startPillars(CommandContext<CommandSourceStack> context, List<ServerPlayer> players) throws CommandSyntaxException {
+        ServerPlayer executor = context.getSource().getPlayerOrException();
+        ServerLevel level = context.getSource().getLevel();
+
+        if (GameListener.isGameStarted) {
+            executor.displayClientMessage(Component.literal("A game is already running!"), false);
+            return 0;
+        }
+
+        PillarsOfFortune.startGame(players, executor, level);
+        executor.displayClientMessage(
+                Component.literal("Pillars of Fortune started for " + players.size() + " players."),
+                false
+        );
+        return players.size();
     }
 
     @SubscribeEvent
     public static void onPlayerChat(ServerChatEvent event) {
         if (event.getMessage().getString().equalsIgnoreCase("stop")) {
             isGameStarted = false;
+            game = "";
             event.getPlayer().sendSystemMessage(Component.literal("Game stopped."));
         }
     }
