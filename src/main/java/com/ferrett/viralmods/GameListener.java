@@ -9,6 +9,7 @@ import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.ServerChatEvent;
 import net.minecraftforge.eventbus.api.listener.SubscribeEvent;
@@ -138,6 +139,36 @@ public class GameListener {
                                         )
                                 )
                         )
+        );
+
+        dispatcher.register(
+                Commands.literal("mob-powers")
+                        .executes(context -> {
+                            if (MobPowers.mobPowers) {
+                                MobPowers.powers.clear();
+                                ServerPlayer player = context.getSource().getPlayerOrException();
+                                List<ServerPlayer> allPlayers = ((ServerLevel) player.level()).getServer().getPlayerList().getPlayers();
+                                for (ServerPlayer player1 : allPlayers) {
+                                    player1.getAttribute(Attributes.MAX_HEALTH).setBaseValue(20);
+                                    player1.getAttribute(Attributes.MOVEMENT_SPEED).setBaseValue(0.1);
+                                    player1.getAttribute(Attributes.ATTACK_DAMAGE).setBaseValue(2);
+                                    player1.getAbilities().mayfly = false;
+                                    player1.getAbilities().flying = false;
+                                    player1.onUpdateAbilities();
+                                }
+
+
+                                MobPowers.mobPowers = false;
+
+                                player.displayClientMessage(Component.literal("Mob Powers turned off"), false);
+                            } else {
+                                MobPowers.powers.clear();
+                                MobPowers.mobPowers = true;
+                                ServerPlayer player = context.getSource().getPlayerOrException();
+                                player.displayClientMessage(Component.literal("Mob Powers turned on"), false);
+                            }
+                            return 1;
+                        })
         );
 
     }
