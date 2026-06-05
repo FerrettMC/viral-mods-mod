@@ -198,7 +198,7 @@ public class GameListener {
                         .executes(context -> {
                             // No argument — just show usage message
                             ServerPlayer player = context.getSource().getPlayerOrException();
-                            player.displayClientMessage(Component.literal("Usage: /mob-hide-and-seek <players> (from 1-5)"), false);
+                            player.displayClientMessage(Component.literal("Usage: /mob-hide-and-seek <players> (from 2-5)"), false);
                             return 1;
                         })
                         .then(Commands.argument("player1", EntityArgument.player())
@@ -316,6 +316,7 @@ public class GameListener {
     public static void onPlayerChat(ServerChatEvent event) {
         if (event.getMessage().getString().equalsIgnoreCase("stop")) {
             isGameStarted = false;
+            event.getPlayer().getAbilities().flying = false;
             game = "";
             if (DeathSwap.swap) {
                 DeathSwap.swap = false;
