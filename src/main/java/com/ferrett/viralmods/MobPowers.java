@@ -30,6 +30,7 @@ public class MobPowers {
     public static void onMobKill(LivingDeathEvent event) {
         if (!mobPowers) return;
         if (event.getEntity() instanceof ServerPlayer) return; // ignore player deaths
+        GameListener.isGameStarted = true;
 
         Player killer = event.getSource().getEntity() instanceof Player p ? p : null;
         if (killer == null) return;

@@ -9,6 +9,7 @@ import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.ServerChatEvent;
@@ -146,6 +147,7 @@ public class GameListener {
                         .executes(context -> {
                             if (MobPowers.mobPowers) {
                                 MobPowers.powers.clear();
+                                GameListener.isGameStarted = false;
                                 ServerPlayer player = context.getSource().getPlayerOrException();
                                 List<ServerPlayer> allPlayers = ((ServerLevel) player.level()).getServer().getPlayerList().getPlayers();
                                 for (ServerPlayer player1 : allPlayers) {
@@ -162,6 +164,7 @@ public class GameListener {
 
                                 player.displayClientMessage(Component.literal("Mob Powers turned off"), false);
                             } else {
+
                                 MobPowers.powers.clear();
                                 MobPowers.mobPowers = true;
                                 ServerPlayer player = context.getSource().getPlayerOrException();
@@ -171,6 +174,125 @@ public class GameListener {
                         })
         );
 
+        dispatcher.register(
+                Commands.literal("deathswap")
+                        .then(Commands.argument("player1", EntityArgument.player())
+                                .executes(context -> {
+                                    List<ServerPlayer> players = new ArrayList<>();
+                                    players.add(EntityArgument.getPlayer(context, "player1"));
+                                    return startDeathSwap(context, players);
+                                })
+                                .then(Commands.argument("player2", EntityArgument.player())
+                                        .executes(context -> {
+                                            List<ServerPlayer> players = new ArrayList<>();
+                                            players.add(EntityArgument.getPlayer(context, "player1"));
+                                            players.add(EntityArgument.getPlayer(context, "player2"));
+                                            return startDeathSwap(context, players);
+                                        })
+                                )
+                        )
+        );
+
+        dispatcher.register(
+                Commands.literal("mob-hide-and-seek")
+                        .executes(context -> {
+                            // No argument — just show usage message
+                            ServerPlayer player = context.getSource().getPlayerOrException();
+                            player.displayClientMessage(Component.literal("Usage: /mob-hide-and-seek <players> (from 1-5)"), false);
+                            return 1;
+                        })
+                        .then(Commands.argument("player1", EntityArgument.player())
+                                .executes(context -> {
+                                    List<ServerPlayer> players = new ArrayList<>();
+                                    players.add(EntityArgument.getPlayer(context, "player1"));
+                                    return startModHAS(context, players);
+                                })
+                                .then(Commands.argument("player2", EntityArgument.player())
+                                        .executes(context -> {
+                                            List<ServerPlayer> players = new ArrayList<>();
+                                            players.add(EntityArgument.getPlayer(context, "player1"));
+                                            players.add(EntityArgument.getPlayer(context, "player2"));
+                                            return startModHAS(context, players);
+                                        })
+                                )
+                                .then(Commands.argument("player3", EntityArgument.player())
+                                        .executes(context -> {
+                                            List<ServerPlayer> players = new ArrayList<>();
+                                            players.add(EntityArgument.getPlayer(context, "player1"));
+                                            players.add(EntityArgument.getPlayer(context, "player2"));
+                                            players.add(EntityArgument.getPlayer(context, "player3"));
+                                            return startModHAS(context, players);
+                                        })
+                                        .then(Commands.argument("player4", EntityArgument.player())
+                                                .executes(context -> {
+                                                    List<ServerPlayer> players = new ArrayList<>();
+                                                    players.add(EntityArgument.getPlayer(context, "player1"));
+                                                    players.add(EntityArgument.getPlayer(context, "player2"));
+                                                    players.add(EntityArgument.getPlayer(context, "player3"));
+                                                    players.add(EntityArgument.getPlayer(context, "player4"));
+                                                    return startModHAS(context, players);
+                                                })
+                                                .then(Commands.argument("player5", EntityArgument.player())
+                                                        .executes(context -> {
+                                                            List<ServerPlayer> players = new ArrayList<>();
+                                                            players.add(EntityArgument.getPlayer(context, "player1"));
+                                                            players.add(EntityArgument.getPlayer(context, "player2"));
+                                                            players.add(EntityArgument.getPlayer(context, "player3"));
+                                                            players.add(EntityArgument.getPlayer(context, "player4"));
+                                                            players.add(EntityArgument.getPlayer(context, "player5"));
+                                                            return startModHAS(context, players);
+                                                        })
+                                                )
+                                        )
+                                )
+                        )
+
+        );
+
+
+
+    }
+
+
+    private static int startModHAS(CommandContext<CommandSourceStack> context, List<ServerPlayer> players) throws CommandSyntaxException {
+        ServerPlayer executor = context.getSource().getPlayerOrException();
+        ServerLevel level = context.getSource().getLevel();
+        if (players.size() < 2 || players.size() > 5) {
+            executor.displayClientMessage(Component.literal("Not correct amount of players (2-5)!"), false);
+            return 0;
+        }
+        if (MobHideAndSeek.mobHideAndSeek) {
+            executor.displayClientMessage(Component.literal("Game already running!"), false);
+            return 0;
+        }
+
+        for (ServerPlayer player : players) {
+            player.displayClientMessage(Component.literal("Mob Hide and Seek Started"), false);
+        }
+        MobHideAndSeek.startHideAndSeek(players, level);
+        return 1;
+    }
+
+    private static int startDeathSwap(CommandContext<CommandSourceStack> context, List<ServerPlayer> players) throws CommandSyntaxException {
+        ServerPlayer executor = context.getSource().getPlayerOrException();
+        ServerLevel level = context.getSource().getLevel();
+        if (players.size() != 2) {
+            executor.displayClientMessage(Component.literal("Not correct amount of players (2)!"), false);
+            return 0;
+        }
+        if (DeathSwap.swap) {
+            executor.displayClientMessage(Component.literal("Game already running!"), false);
+            return 0;
+        }
+        if (players.get(0) == players.get(1)) {
+            executor.displayClientMessage(Component.literal("Cannot use same player"), false);
+            return 0;
+        }
+        for (ServerPlayer player : players) {
+            player.displayClientMessage(Component.literal("DeathSwap Started"), false);
+        }
+        DeathSwap.startDeathSwap(players, level);
+        return 1;
     }
 
     private static int startPillars(CommandContext<CommandSourceStack> context, List<ServerPlayer> players) throws CommandSyntaxException {
@@ -195,7 +317,13 @@ public class GameListener {
         if (event.getMessage().getString().equalsIgnoreCase("stop")) {
             isGameStarted = false;
             game = "";
-            event.getPlayer().sendSystemMessage(Component.literal("Game stopped."));
+            if (DeathSwap.swap) {
+                DeathSwap.swap = false;
+            }
+            if (MobHideAndSeek.mobHideAndSeek) {
+                MobHideAndSeek.mobHideAndSeek = false;
+            }
+            event.getPlayer().sendSystemMessage(Component.literal("Games stopped."));
         }
     }
 }
