@@ -6,11 +6,13 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.EntityArgument;
+import net.minecraft.commands.arguments.blocks.BlockStateArgument;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.ServerChatEvent;
 import net.minecraftforge.eventbus.api.listener.SubscribeEvent;
@@ -249,6 +251,26 @@ public class GameListener {
 
         );
 
+        dispatcher.register(
+                Commands.literal("one-block")
+                        .executes(context -> {
+                            ServerPlayer player = context.getSource().getPlayerOrException();
+                            return 1;
+                        })
+                        .then(Commands.argument("block",
+                                                BlockStateArgument.block(event.getBuildContext())
+                                        )
+                                        .executes(context -> {
+                                            ServerPlayer player = context.getSource().getPlayerOrException();
+                                            BlockState block = BlockStateArgument.getBlock(context, "block").getState();
+                                            player.displayClientMessage(Component.literal("You can now only touch the block " + block.getBlock().getName().getString() + ". Type stop to stop."), false);
+                                            OneBlock.startOneBlock(player, player.level(), block.getBlock());
+                                            return 1;
+                                        })
+                        )
+        );
+
+
 
 
     }
@@ -316,6 +338,7 @@ public class GameListener {
     public static void onPlayerChat(ServerChatEvent event) {
         if (event.getMessage().getString().equalsIgnoreCase("stop")) {
             isGameStarted = false;
+            OneBlock.oneBlock = false;
             event.getPlayer().getAbilities().flying = false;
             game = "";
             if (DeathSwap.swap) {
