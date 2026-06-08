@@ -269,6 +269,14 @@ public class GameListener {
                                         })
                         )
         );
+        dispatcher.register(
+                Commands.literal("skyblock-random-items")
+                        .executes(context -> {
+                            ServerPlayer player = context.getSource().getPlayerOrException();
+                            SkyblockRandomItems.startGame(player);
+                            return 1;
+                        })
+        );
 
 
 
@@ -339,6 +347,7 @@ public class GameListener {
         if (event.getMessage().getString().equalsIgnoreCase("stop")) {
             isGameStarted = false;
             OneBlock.oneBlock = false;
+            SkyblockRandomItems.randItems = false;
             event.getPlayer().getAbilities().flying = false;
             game = "";
             if (DeathSwap.swap) {
